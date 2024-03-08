@@ -1,27 +1,14 @@
-<!--
-
-  Copyright (c)     
-
-  The Verifiable & Control-Theoretic Robotics (VECTR) Lab
-  University of California, Los Angeles
-
-  Authors: Kenny J. Chen, Ryan Nemiroff, Brett T. Lopez
-  Contact: {kennyjchen, ryguyn, btlopez}@ucla.edu
-
--->
-
 <launch>
 
+  <arg name="autorun" default="0"/>
   <arg name="robot_namespace" default="robot"/>
   <arg name="rviz" default="true"/>
 
   <!-- MCD pointcloud support -->
-  <arg name="data_path" default="/media/tmn/mySataSSD2/DATASETS/MCDVIRAL/PublishedSequences"/>
+  <arg name="data_path" default="/media/tmn/mySataSSD1/DATASETS/MCDVIRAL/PublishedSequences"/>
 
-  <arg  name="bag_file"  default="$(arg data_path)/ntu_day_01/*.bag"/>
+  <arg  name="bag_file"  default="$(arg data_path)/ntu_day_01"/>
   <!-- <arg  name="bag_file"  default="$(arg data_path)/kth_day_06/*.bag"/> -->
-  <!-- <arg  name="bag_file"  default="$(arg data_path)/kth_day_10/*.bag"/> -->
-  <!-- <arg  name="bag_file"  default="$(arg data_path)/kth_night_01/*.bag"/> -->
   <!-- <arg  name="bag_file"  default="$(arg data_path)/tuhh_day_03/*.bag"/> -->
   
   <!-- Chose the config file based on the sequence names -->
@@ -29,21 +16,15 @@
   <arg name="config_file" value="hhs" if="$(eval 'kth_'  in bag_file)" />
   <arg name="config_file" value="hhs" if="$(eval 'tuhh_' in bag_file)" />
 
-  <!-- Extra config for the ouster vertical resolution -->
-  <arg name="os_vres" value="[128, 1]" if="$(eval 'ntu_'  in bag_file)" />
-  <arg name="os_vres" value="[064, 1]" if="$(eval 'kth_'  in bag_file)" />
-  <arg name="os_vres" value="[064, 1]" if="$(eval 'tuhh_' in bag_file)" />
-
   <!-- Run the livox to ouster converter -->
   <node pkg="slict" type="slict_livox_to_ouster" name="slict_livox_to_ouster" respawn="false" output="log" required="true"></node>  
   
   <!-- Create the merge pointcloud -->
-  <node pkg="merge_lidar" type="merge_lidar_node" name="merge_lidar" respawn="true" output="log" required="false">
+  <node pkg="slict" type="slict_merge_lidar" name="slict_merge_lidar" respawn="true" output="screen" required="false">
     <rosparam file="$(find slict)/config/mcdviral_$(arg config_file).yaml" command="load"/>
-    <rosparam param="lidar_channels" subst_value="True"> $(arg os_vres) </rosparam>
   </node>
 
-  <arg name="pointcloud_topic" default="/os_cloud_node_merged"/>  
+  <arg name="pointcloud_topic" default="/os_cloud_node_merged"/>
   <arg name="imu_topic" default="/vn100/imu" if="$(eval 'ntu_'  in bag_file)"/>
   <arg name="imu_topic" default="/vn200/imu" if="$(eval 'kth_'  in bag_file)"/>
   <arg name="imu_topic" default="/vn200/imu" if="$(eval 'tuhh_' in bag_file)"/>
@@ -87,8 +68,8 @@
   <!-- RViz -->
   <node pkg="rviz" type="rviz" name="dlio_rviz" args="-d $(find direct_lidar_inertial_odometry)/launch/dlio.rviz" if="$(arg rviz)"/>
 
-  <node required="false" pkg="rosbag" type="play" name="rosbag_player"
-        args="--clock $(arg bag_file) -r 1.0 -s 0"
+  <node required="$(eval autorun != 0)" pkg="rosbag" type="play" name="rosbag_player"
+        args="--clock $(arg bag_file)/*.bag -r 1.0 -s 0"
         launch-prefix="bash -c 'sleep 1; $0 $@' "/>
 
 </launch>
