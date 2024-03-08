@@ -7,7 +7,7 @@
   <!-- MCD pointcloud support -->
   <arg name="data_path" default="/media/tmn/mySataSSD1/DATASETS/MCDVIRAL/PublishedSequences"/>
 
-  <arg  name="bag_file"  default="$(arg data_path)/ntu_day_01"/>
+  <arg  name="bag_file"  default="$(arg data_path)/ntu_day_01/*.bag"/>
   <!-- <arg  name="bag_file"  default="$(arg data_path)/kth_day_06/*.bag"/> -->
   <!-- <arg  name="bag_file"  default="$(arg data_path)/tuhh_day_03/*.bag"/> -->
   
@@ -69,7 +69,7 @@
   <node pkg="rviz" type="rviz" name="dlio_rviz" args="-d $(find direct_lidar_inertial_odometry)/launch/dlio.rviz" if="$(arg rviz)"/>
 
   <node required="$(eval autorun != 0)" pkg="rosbag" type="play" name="rosbag_player"
-        args="--clock $(arg bag_file)/*.bag -r 1.0 -s 0"
+        args="--clock $(arg bag_file) -r 1.0 -s 0"
         launch-prefix="bash -c 'sleep 1; $0 $@' "/>
 
 </launch>
